@@ -11,7 +11,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 def connexion(driver):
     url_connexion="https://www.mantisbt.org/bugs/login_page.php"
+    #Récupération de la page de connexion
     driver.get(url_connexion)
+    #on met le login
     input_login = driver.find_element(By.ID,"username").send_keys("Fourbasse37100")
     btn_click = driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[2]").click()
     print(driver.current_url)
@@ -21,13 +23,11 @@ def connexion(driver):
     keep_connected_elem = driver.find_element(By.XPATH,"//*[@id='remember-login']")
     ActionChains(driver).move_to_element(keep_connected_elem).click().perform()
     #on décoche la restriction d'ip
-    ip_restreint =driver.find_element(By.XPATH,"//*[@id='secure-session']")
+    ip_restreint = driver.find_element(By.XPATH,"//*[@id='secure-session']")
     ActionChains(driver).move_to_element(ip_restreint).click().perform()
 
     driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[3]").click()
-
-    print(driver.current_url)
-    driver.implicitly_wait(100)
+    driver.implicitly_wait(20)
     return driver
 #Initialisation du dico de données
 data = {}
@@ -39,7 +39,7 @@ driver = webdriver.Firefox()
 url = "https://www.mantisbt.org/bugs/my_view_page.php"
 #On se place sur la page web
 connect_page = connexion(driver)
-#on clicque sur "afficher les bugs"
+#on clique sur "afficher les bugs"
 
 elem = driver.find_element(By.XPATH,"//*[@id='sidebar']/ul/li[2]/a").click()
 
