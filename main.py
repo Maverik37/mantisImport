@@ -19,28 +19,32 @@ def connexion(driver):
     url_connexion="https://www.mantisbt.org/bugs/login_page.php"
     #Récupération de la page de connexion
     driver.get(url_connexion)
-    #on met le login
-    input_login = driver.find_element(By.ID,"username").send_keys("Fourbasse37100")
-    btn_click = driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[2]").click()
-    
-    #On attend que le DOM soit complètement chargé
-    driver.implicitly_wait(30)
-    #on rentre le mdp
-    input_password = driver.find_element(By.ID, "password").send_keys("uool7qho")
-    
-    #on va cliquer sur rester connecté
-    keep_connected_elem = driver.find_element(By.XPATH,"//*[@id='remember-login']")
-    ActionChains(driver).move_to_element(keep_connected_elem).click().perform()
-    
-    #on décoche la restriction d'ip
-    ip_restreint = driver.find_element(By.XPATH,"//*[@id='secure-session']")
-    ActionChains(driver).move_to_element(ip_restreint).click().perform()
-    
-    #On clique sur "se connecter"
-    driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[3]").click()
-    
-    #on attend un peu pour retourner le driver
-    driver.implicitly_wait(20)
+    try:
+        #on met le login
+        input_login = driver.find_element(By.ID,"username").send_keys("Fourbasse37100")
+        btn_click = driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[2]").click()
+        
+        #On attend que le DOM soit complètement chargé
+        driver.implicitly_wait(30)
+        #on rentre le mdp
+        input_password = driver.find_element(By.ID, "password").send_keys("uool7qho")
+        
+        #on va cliquer sur rester connecté
+        keep_connected_elem = driver.find_element(By.XPATH,"//*[@id='remember-login']")
+        ActionChains(driver).move_to_element(keep_connected_elem).click().perform()
+        
+        #on décoche la restriction d'ip
+        ip_restreint = driver.find_element(By.XPATH,"//*[@id='secure-session']")
+        ActionChains(driver).move_to_element(ip_restreint).click().perform()
+        
+        #On clique sur "se connecter"
+        driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[3]").click()
+        
+        #on attend un peu pour retourner le driver
+        driver.implicitly_wait(20)
+    except Exception as e:
+        print("Erreur lors de la connexion")
+        print(e)
     return driver
 
 def get_mantis_from_filter(driver,filter):
@@ -108,24 +112,25 @@ def get_table_data (driver):
     # On retourne le dico formé
     return data
 
+#Script principal
 
 #On paramètre le driver
 driver = webdriver.Firefox()
 
-url = "https://www.mantisbt.org/bugs/my_view_page.php"
-#On se place sur la page web
+#on se connecte sur mantis
 connect_page = connexion(driver)
-#on clique sur "afficher les bugs"
 
+#on clique sur "afficher les bugs"
 elem = driver.find_element(By.XPATH,"//*[@id='sidebar']/ul/li[2]/a").click()
-#
+
+#on va utiliser la fonction pour sélectionner un filtre puis l'autre fonction pour récupérer les données
 get_mantis_from_filter(driver, 'Open Issues')
 open_issue_data = get_table_data(driver)
-#On récupère la table qui contient la liste des tickets
-#
 
+#on ferme le driver
 driver.close()
-print(open_issue_data)
+
+#A définir ce qu'il faut récupérer !
 # for key,value in data.items():
 #     driver = webdriver.Firefox()
 #     driver.get(value["url"])
