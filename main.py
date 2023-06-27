@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
 from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -29,6 +30,11 @@ def connexion(driver):
     driver.find_element(By.XPATH,"//*[@id='login-form']/fieldset/input[3]").click()
     driver.implicitly_wait(20)
     return driver
+
+def get_mantis_from_filter(driver,filter):
+    select = driver.find_element(By.ID, 'filter-bar-query-id')
+    obj_select = Select(select)
+    
 #Initialisation du dico de données
 data = {}
 
