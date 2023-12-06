@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -8,8 +9,10 @@ from selenium.common.exceptions import NoSuchElementException, StaleElementRefer
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
+from webdriver_manager.firefox import GeckoDriverManager
 from config import mantis_filter
-import os,time
+import os, time
+
 
 # Fonction
 
@@ -50,38 +53,41 @@ def connexion(driver):
         print(e)
     return driver
 
-def get_table_data (driver):
+
+def get_table_data(driver):
     table_obj = driver.find_element(By.ID, "buglist")
     data = {}
-    #On récupère les lignes
+    # On récupère les lignes
     obj_lines = table_obj.find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
-    #On parcourt les lignes
+    # On parcourt les lignes
     for row in obj_lines:
-        cells = row.find_elements(By.TAG_NAME, "td") #On va récupèrer les cellules du tableau
-        link = row.find_elements(By.TAG_NAME, 'a') #ici on récupère les liens (/!\ yen a 2
+        cells = row.find_elements(By.TAG_NAME, "td")  # On va récupèrer les cellules du tableau
+        link = row.find_elements(By.TAG_NAME, 'a')  # ici on récupère les liens (/!\ yen a 2
         try:
             nb_mantis = cells[3].text.replace('0', '')
             mant_cat = cells[6].text
-            statut_list = cells[8].text.replace(' (','(').split("(")[:-1]
+            statut_list = cells[8].text.replace(' (', '(').split("(")[:-1]
             statut = ""
-            #Petite boucle pour renseigner le statut sous forme de string
+            # Petite boucle pour renseigner le statut sous forme de string
             for i in statut_list:
                 statut += i
-            affect_to = cells[8].text.replace(' (', '(').split("(")[-1].replace(')','')
+            affect_to = cells[8].text.replace(' (', '(').split("(")[-1].replace(')', '')
 
-            #on ajoute les infos dans le dico
+            # on ajoute les infos dans le dico
             data[nb_mantis] = {}
-            data[nb_mantis]["Catégorie"] = mant_cat.replace("[","").replace("]","")
+            data[nb_mantis]["Catégorie"] = mant_cat.replace("[", "").replace("]", "")
             data[nb_mantis]["Statut"] = statut
             data[nb_mantis]["Affecte a"] = affect_to
 
-            href = url.replace('my_view_page.php', 'view.php?id='+nb_mantis)
+            href = url.replace('my_view_page.php', 'view.php?id=' + nb_mantis)
             data[nb_mantis]["url"] = href
         except Exception as e:
             print(e)
             continue
 
     return data
+
+
 def get_mantis_from_filter(driver, filter):
     """
     Paramètre : webdriver lancé dans le script ; le filtre a appliquer
@@ -102,16 +108,17 @@ def get_mantis_from_filter(driver, filter):
     driver.implicitly_wait(100)
     return driver
 
-#Variables constantes
 
-download_path = "csv\\"
+# Variables constantes
+
+download_path = "D:\PYTHON\mantisImport\csv"
 
 # On va paramétrer le chemin de téléchargement
 d_profile = Options()
-d_profile.set_preference("browser.download.folderList",2)
-d_profile.set_preference("browser.download.manager.showWhenStarting",False)
-d_profile.set_preference("browser.download.dir",download_path)
-d_profile.set_preference("browser.helperApps.neverAsk.saveToDisk","application/octet-stream")
+d_profile.set_preference("browser.download.folderList", 2)
+d_profile.set_preference("browser.download.manager.showWhenStarting", False)
+d_profile.set_preference("browser.download.dir", download_path)
+d_profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
 
 # On paramètre le driver
 driver = webdriver.Firefox(options=d_profile)
@@ -125,12 +132,12 @@ elem = driver.find_element(By.XPATH, "//*[@id='sidebar']/ul/li[2]/a").click()
 # on va utiliser la fonction pour sélectionner un filtre puis l'autre fonction pour récupérer les données
 
 for m_filter in mantis_filter:
-    get_mantis_from_filter(driver, "Open Issues")
- # open_issue_data = get_table_data(driver)
+    filter_driver = get_mantis_from_filter(driver, m_filter)
+    # open_issue_data = get_table_data(driver)
     try:
-        driver.find_element(By.LINK_TEXT, 'Export CSV').click()
-        print(driver.current_url)
-        driver.implicitly_wait(60)
+        export = filter_driver.find_element(By.LINK_TEXT, "Export CSV")
+        ActionChains(filter_driver).move_to_element(export).click().perform()
+        driver.implicitly_wait(100 )
     except Exception as e:
         print(e)
 # on ferme le driver
