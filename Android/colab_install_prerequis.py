@@ -65,11 +65,8 @@ run_sh_command(update_apt_get)
 print ("-------------- Installation des librairies linux nécessaire ---------------")
 threads = []
 for lib in shell_install:
-  t = threading.Thread(target=install_multiple_shell_libraries, args=(lib,))
-  t.start()
-  threads.append(t)
-for thread in threads:
-  thread.join()
+    install = "sudo apt-get install -y "+lib
+    run_sh_command(install)
 
 print ("-------------- Installation Buildozer et cython ---------------")
 try:
