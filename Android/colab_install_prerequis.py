@@ -1,7 +1,7 @@
 import os,subprocess,threading
 env = os.environ.copy()
 error_log = "install.log"
-python_pip_install = ["pip","install","Buildozer",";","pip","install","cython"]
+python_pip_install = "pip install Buildozer ; pip install cython"
 shell_install =[
   "python3-pip",
   "build-essential",
@@ -69,11 +69,7 @@ for lib in shell_install:
     run_sh_command(install)
 
 print ("-------------- Installation Buildozer et cython ---------------")
-try:
-  subprocess.run(python_pip_install, shell=True, check=True)
-except subprocess.CalledProcessError as e:
-  print (e)
-  pass
+run_sh_command(python_pip_install)
 
 print ("------------- Installation du jdk nécessaire ----------------")
 jdk_install = "apt-get install openjdk-17-jre-headless -qq"
