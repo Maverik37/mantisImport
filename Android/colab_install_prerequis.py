@@ -51,7 +51,7 @@ def install_multiple_shell_libraries(lib):
 print ("""
 ################## Debut d'installation des pre-requis pour le build android ###################
             -------------- Mise a jour de l'apt ---------------
-"""
+""")
 
 try:
   subprocess.run(update_apt_get, shell=True, check=True)
