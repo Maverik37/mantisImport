@@ -1,5 +1,5 @@
 import os,subprocess,threading
-
+env = os.environ.copy()
 error_log = "install.log"
 python_pip_install = ["pip","install","Buildozer",";","pip","install","cython"]
 shell_install =[
@@ -38,12 +38,19 @@ shell_install =[
   "libtool"
 ]
 
-update_apt_get = ["sudo","apt","update","&&","sudo","apt","upgrade","-y"]
+update_apt_get = "apt update && sudo apt upgrade -y"
+
+def run_sh_command(cmd):
+  try:
+      subprocess.run(cmd, shell=True, check=True,env=env)
+  except subprocess.CalledProcessError as e:
+    print (e)
+    pass
 
 def install_multiple_shell_libraries(lib):
-    install = ["sudo","apt-get","install","-y",lib]
+    install = "sudo apt-get install -y "+lib
     try:
-      subprocess.run(install, shell=True, check=True)
+      subprocess.run(install, shell=True, check=True,env=env)
     except subprocess.CalledProcessError as e:
       print (e)
       pass
@@ -53,11 +60,7 @@ print ("""
             -------------- Mise a jour de l'apt ---------------
 """)
 
-try:
-  subprocess.run(update_apt_get, shell=True, check=True)
-except subprocess.CalledProcessError as e:
-  print (e)
-  pass
+run_sh_command(update_apt_get)
 
 print ("-------------- Installation des librairies linux nécessaire ---------------")
 threads = []
@@ -76,11 +79,12 @@ except subprocess.CalledProcessError as e:
   pass
 
 print ("------------- Installation du jdk nécessaire ----------------")
-jdk_install = ["sudo","apt-get","install","openjdk-17-jre-headless","-qq"]
+jdk_install = "apt-get install openjdk-17-jre-headless -qq"
 try:
-  subprocess.run(jdk_install, shell=True, check=True)
+  run_sh_command(jdk_install)
   os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-17-openjdk-amd64"
-  subprocess.run(["update-alternatives","--set","java","/usr/lib/jvm/java-17-openjdk-amd64/bin/java",";","java","-version"], shell=True, check=True)
+  jdk_cmd_bis = "update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java ; java -version"
+  run_sh_command(jdk_cmd_bis)
 except subprocess.CalledProcessError as e:
   print (e)
   pass
