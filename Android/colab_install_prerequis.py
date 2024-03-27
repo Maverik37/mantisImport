@@ -1,4 +1,4 @@
-import os,subprocess
+import os,subprocess,threading
 
 error_log = "install.log"
 python_pip_install = ["pip","install","Buildozer",";","pip","install","cython"]
