@@ -44,10 +44,10 @@ requirements = python3,kivy,sqlite3,kivymd,requests,
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-presplash.filename = /Content/mantisImport/Android/Icon/fuel.png
+presplash.filename = /content/mantisImport/Android/Icon/fuel.png
 
 # (str) Icon of the application
-icon.filename = /Content/mantisImport/Android/Icon/fuel.png
+icon.filename = /content/mantisImport/Android/Icon/fuel.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
