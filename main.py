@@ -5,7 +5,6 @@ from kivy.lang import Builder
 from tools import DatabaseHelper, get_gazole_price
 from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
-from datetime import date
 
 Builder.load_file("main.kv")
 
@@ -52,7 +51,9 @@ class AjoutScreen(Screen):
     pass
 
 class MainApp(MDApp):
+
     def build(self):
+        self.icon = "Icon/fuel.png"
         screenmanager = MDScreenManager()
         screenmanager.add_widget(MenuScreen(name="menu"))
         screenmanager.add_widget(AjoutScreen(name="addnewstations"))

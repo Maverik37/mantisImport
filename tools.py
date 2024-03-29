@@ -1,7 +1,7 @@
 import sqlite3
 from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
-import requests,json
+import requests, json
 class DataTable(MDDataTable):
     def __init__(self,center_x,center_y,size,data):
         self.centerx = center_x
