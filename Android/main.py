@@ -6,7 +6,7 @@ from tools import DatabaseHelper, get_gazole_price
 from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
 
-Builder.load_file("main.kv")
+# Builder.load_file("main.kv")
 
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
