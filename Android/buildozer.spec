@@ -37,17 +37,17 @@ version = 1.0.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,sqlite3,kivymd,requests,
+requirements = python3,kivy,sqlite3,kivymd,requests
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-presplash.filename = /Content/mantisImport/Android/Icon/fuel.png
+presplash.filename = /content/mantisImport/Android/Icon/fuel.png
 
 # (str) Icon of the application
-icon.filename = /Content/mantisImport/Android/Icon/fuel.png
+icon.filename = /content/mantisImport/Android/Icon/fuel.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
