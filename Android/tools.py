@@ -36,7 +36,6 @@ class StationInfo():
         except Exception as e:
             print(e)
 
-
 class DatabaseHelper():
     def __init__(self):
         self.name = "Stations"
@@ -82,3 +81,4 @@ class DatabaseHelper():
             c.close()
         except Exception as e:
             print(e)
+

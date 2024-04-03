@@ -52,6 +52,7 @@ class AjoutScreen(Screen):
         conn = DatabaseHelper()
         conn.add_stations_id(id)
     pass
+
 class DeleteStationScreen(Screen):
     def __init__(self, **kwargs):
         super(DeleteStationScreen, self).__init__(**kwargs)
@@ -108,6 +109,7 @@ class MainApp(MDApp):
         screenmanager.add_widget(MenuScreen(name="menu"))
         screenmanager.add_widget(AjoutScreen(name="addnewstations"))
         screenmanager.add_widget(DeleteStationScreen(name="deletestation"))
+
         return screenmanager
 
     def return_home(self):
