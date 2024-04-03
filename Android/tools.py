@@ -2,36 +2,40 @@ import sqlite3
 from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
 import requests, json
-class DataTable(MDDataTable):
-    def __init__(self,center_x,center_y,size,data):
-        self.centerx = center_x
-        self.centery = center_y
-        self.size = size
-        # self.column_data = column
-        self.data = data
 
-    def get_datatable(self):
-        Table = MDDataTable()
-        Table.pos_hint = {"center_x": self.centerx, "center_y": self.centery}
-        Table.size_hint = self.size
-        Table.column_data = [("Nom", dp(30)), ("Prix",dp(30))]
-        Table.row_data = [("station 1", "toto"),("tata", "titi")]
-        Table.pagination = False
+class StationInfo():
+    def __init__(self, stations):
+        self.data = stations
+        self.api = "https://api.prix-carburants.2aaz.fr/station/"
+    def get_gazole_price(self):
+        try:
+            array = []
+            for id in self.data:
+                url = self.api+id[0]
+                get_url = requests.get(url)
+                data = json.loads(get_url.content)
+                nom = data['name']
+                prix = data['Fuels'][0]['Price']['value']
+                row= (nom,prix)
+                array.append(row)
+            return array
+        except Exception as e:
+            print(e)
+    def get_station_liste(self):
+        try:
+            array = []
+            for id in self.data:
+                url = self.api + id[0]
+                get_url = requests.get(url)
+                data = json.loads(get_url.content)
+                nom = data['name']
+                numero = str(id[0])
+                row= (nom,numero)
+                array.append(row)
+            return array
+        except Exception as e:
+            print(e)
 
-        return Table
-
-def get_gazole_price(ID):
-    api = "https://api.prix-carburants.2aaz.fr/station/"
-    array = []
-    for id in ID:
-        url = api+id[0]
-        get_url = requests.get(url)
-        data = json.loads(get_url.content)
-        nom = data['name']
-        prix = data['Fuels'][0]['Price']['value']
-        row= (nom,prix)
-        array.append(row)
-    return array
 
 class DatabaseHelper():
     def __init__(self):
@@ -56,7 +60,6 @@ class DatabaseHelper():
 
     def add_stations_id(self, id):
         try:
-            print(id)
             value = [str(id)]
             conn = sqlite3.connect('stations.db')
             c = conn.cursor()
@@ -66,3 +69,16 @@ class DatabaseHelper():
             c.close()
         except Exception as e:
             print (e)
+
+    def delete_stations(self, id):
+        try:
+            conn = sqlite3.connect('stations.db')
+            c = conn.cursor()
+            for i in id:
+                value = [str(i)]
+                sql = ''' DELETE FROM stations WHERE ID=(?)'''
+                c.execute(sql, value)
+            conn.commit()
+            c.close()
+        except Exception as e:
+            print(e)
