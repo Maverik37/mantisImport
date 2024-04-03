@@ -1,73 +1,117 @@
 <MenuScreen>
-    Screen:
-        name: "menu"
-        id: home
+    name: "menu"
+    id: home
+    MDFloatLayout:
+        id : table
+        pos_hint:{"center_x": .5, "top": 1}
+    MDTopAppBar:
+        title: "Home"
+        pos_hint:{"top":1}
+        left_action_items: [["menu", lambda x: nav_drawer.set_state('open')]]
+        right_action_items: [["home", lambda x: x]]
+    MDNavigationDrawer:
+        id: nav_drawer
+        MDNavigationDrawerMenu:
+            MDNavigationDrawerItem:
+                icon: 'plus'
+                text: "Ajout nouvelle station"
+                on_press:
+                    nav_drawer.set_state('close')
+                    root.manager.current='addnewstations'
+            MDNavigationDrawerItem:
+                icon: 'delete'
+                text: "Supprimer des stations"
+                on_press:
+                    nav_drawer.set_state('close')
+                    root.manager.current='deletestation'
+
+<AjoutScreen>
+    name : "addnewstations"
+    MDBoxLayout:
         MDLabel:
-            id: display
-            text: "Prix du jour"
-            pos_hint:{"center_x": .95 , "center_y":.85}
-        MDBoxLayout:
-            orientation:'horizontal'
-            MDBoxLayout:
-                size_hint: .1 , .005
-            MDBoxLayout
-                id : table
-                padding:[1,1,1,1]
-            MDBoxLayout:
-                size_hint: .2 , .005
+            text: "Comment trouver l'id d'une station :\n   1) Allez sur le site https://www.prix-carburants.gouv.fr/\n   2) Faites votre recherche habituelle\n   3) Clic droit -> inspecter l'élément sur la station essence souhaitée\n   4) Cherchez ceci et prenez l'id : <tr class=\"data\" id=\"45500009\"> "
+            pos_hint: {"center_x":.005 , "top":.9}
+            size_hint: .4, .2
+    MDFloatLayout:
+        id: input_box
+        orientation: 'horizontal'
+        padding: [1,1,1,1]
+        MDTextField:
+            id: station_id
+            hint_text: "id de la station"
+            size_hint_x: .2
+            pos_hint: { 'center_x': (self.width*0.4)/self.width,'center_y': (self.height*0.65)/self.height}
+        MDIconButton:
+            id: btn_add
+            icon: "plus"
+            on_release:
+                root.manager.get_screen("addnewstations").bdd_add_id()
+                app.return_home()
+            pos_hint: {'center_x': (self.width*0.7)/self.width, 'center_y': .65 }
+            size_hint: .1,.1
+    MDBoxLayout:
         MDTopAppBar:
             title: "Home"
             pos_hint:{"top":1}
             left_action_items: [["menu", lambda x: nav_drawer.set_state('open')]]
-            right_action_items: [["home", lambda x: x]]
-        MDNavigationDrawer:
-            id: nav_drawer
-            MDNavigationDrawerMenu:
-                MDNavigationDrawerItem:
-                    icon: 'egg'
-                    text: "Ajout nouvelle station"
-                    on_press:
-                        nav_drawer.set_state('close')
-                        root.manager.current='addnewstations'
+            right_action_items: [["home", lambda x: app.return_home()]]
+    MDNavigationDrawer:
+        id: nav_drawer
+        MDNavigationDrawerMenu:
+            MDNavigationDrawerItem:
+                icon: 'plus'
+                text: "Ajout nouvelle station"
+                on_press:
+                    nav_drawer.set_state('close')
+                    root.manager.current='addnewstations'
+            MDNavigationDrawerItem:
+                icon: 'delete'
+                text: "Supprimer des stations"
+                on_press:
+                    nav_drawer.set_state('close')
+                    root.manager.current='deletestation'
+<DeleteStationScreen>
+    name : "deletestation"
+    MDFloatLayout:
+        size_hint: .5 , .005
+        orientation:"horizontal"
+        MDIconButton:
+            id: btn_delete
+            icon: 'delete'
+            pos_hint:{"center_x":.8,"center_y":self.height-1}
+            on_release:
+                root.manager.get_screen("listestations").delete_station()
+                app.return_home()
+    MDBoxLayout:
+        orientation:'horizontal'
+        MDBoxLayout:
+            size_hint: .2 , .005
+        MDBoxLayout
+            id :table_liste_stations
+            padding:[1,1,1,1]
+            size_hint:.4,.8
+            pos_hint:{"top":1}
+        MDBoxLayout:
+            size_hint: .3 , .005
 
-<AjoutScreen>
-    Screen:
-        name : "addnewstations"
-        MDBoxLayout:
-            MDLabel:
-                text: "Comment trouver l'id d'une station :\n   1) Allez sur le site https://www.prix-carburants.gouv.fr/\n   2) Faites votre recherche habituelle\n   3) Clic droit -> inspecter l'élément sur la station essence souhaitée\n   4) Cherchez ceci et prenez l'id : <tr class=\"data\" id=\"45500009\"> "
-                pos_hint: {"center_x":.005 , "top":.9}
-                size_hint: .4, .2
-        MDFloatLayout:
-            id: input_box
-            orientation: 'horizontal'
-#            padding: [0,0,0,0]
-            MDLabel:
-                text: "ID ="
-                pos_hint: { 'center_x': .45,'center_y': .65}
-                size_hint_x: .1
-            MDTextField:
-                id: station_id
-                size_hint_x: .1
-                pos_hint: { 'center_x': .5,'center_y': .65}
-            MDIconButton:
-                id: btn_add
-                icon: "plus"
-                on_release: root.manager.get_screen("addnewstations").bdd_add_id()
-                pos_hint: {'center_x': .6, 'center_y': .65 }
-                size_hint: .1,.1
-        MDBoxLayout:
-            MDTopAppBar:
-                title: "Home"
-                pos_hint:{"top":1}
-                left_action_items: [["menu", lambda x: nav_drawer.set_state('open')]]
-                right_action_items: [["home", lambda x: app.return_home()]]
-        MDNavigationDrawer:
-            id: nav_drawer
-            MDNavigationDrawerMenu:
-                MDNavigationDrawerItem:
-                    icon: 'egg'
-                    text: "Ajout nouvelle station"
-                    on_press:
-                        nav_drawer.set_state('close')
-                        root.manager.current='addnewstations'
+    MDBoxLayout:
+        MDTopAppBar:
+            title: "Home"
+            pos_hint:{"top":1}
+            left_action_items: [["menu", lambda x: nav_drawer.set_state('open')]]
+            right_action_items: [["home", lambda x: app.return_home()]]
+    MDNavigationDrawer:
+        id: nav_drawer
+        MDNavigationDrawerMenu:
+            MDNavigationDrawerItem:
+                icon: 'plus'
+                text: "Ajout nouvelle station"
+                on_press:
+                    nav_drawer.set_state('close')
+                    root.manager.current='addnewstations'
+            MDNavigationDrawerItem:
+                icon: 'delete'
+                text: "Supprimer des stations"
+                on_press:
+                    nav_drawer.set_state('close')
+                    root.manager.current='deletestation'
