@@ -26,7 +26,7 @@ def get_gazole_price(ID):
     for id in ID:
         url = api+id[0]
         get_url = requests.get(url)
-        data = json.loads(get_url.content)
+        data = json.loads(get_url.content,verify=False)
         nom = data['name']
         prix = data['Fuels'][0]['Price']['value']
         row= (nom,prix)
