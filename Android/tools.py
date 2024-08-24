@@ -12,7 +12,7 @@ class StationInfo():
             array = []
             for id in self.data:
                 url = self.api+id[0]
-                get_url = requests.get(url)
+                get_url = requests.get(url,verify=False)
                 data = json.loads(get_url.content)
                 nom = data['name']
                 prix = data['Fuels'][0]['Price']['value']
@@ -26,7 +26,7 @@ class StationInfo():
             array = []
             for id in self.data:
                 url = self.api + id[0]
-                get_url = requests.get(url)
+                get_url = requests.get(url, verify=False)
                 data = json.loads(get_url.content)
                 nom = data['name']
                 numero = str(id[0])
