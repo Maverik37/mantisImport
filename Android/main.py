@@ -7,7 +7,7 @@ from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
 
 # Builder.load_file("main.kv")
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 class MenuScreen(Screen):
     def __init__(self, **kwargs):
         super(MenuScreen, self).__init__(**kwargs)
