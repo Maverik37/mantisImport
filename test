@@ -8,3 +8,136 @@
     </mxGraphModel>
   </diagram>
 </mxfile>
+Bien sûr ! Voici un script VBA qui fait exactement ce que tu veux : il extrait les colonnes suivantes de la feuille active vers un nouveau fichier CSV :
+
+
+---
+
+✅ Colonnes à extraire (d’après ton image) :
+
+Lot BI
+
+Dernière version analysée
+
+Version de comparaison
+
+Analyse
+
+Mantis d'installation
+
+Date d’analyse
+
+Mantis ouvertes
+
+Statut de la livraison
+
+Mantis fermées
+
+Tri
+
+
+
+---
+
+📜 Script VBA à copier dans l’éditeur VBA
+
+1. Appuie sur ALT + F11 pour ouvrir l’éditeur VBA.
+
+
+2. Insère un nouveau module : Insertion > Module.
+
+
+3. Colle ce code :
+
+
+
+Sub ExportSuiviVersionsToCSV()
+    Dim ws As Worksheet
+    Dim exportWs As Worksheet
+    Dim exportBook As Workbook
+    Dim colMap As Object
+    Dim header As Variant
+    Dim col As Range
+    Dim i As Integer, lastRow As Long
+    Dim destCol As Integer
+    Dim cell As Range
+
+    ' Colonnes à extraire
+    header = Array("Lot BI", "Dernière version analysée", "Version de comparaison", _
+                   "Analyse", "Mantis d'installation", "Date d’analyse", _
+                   "Mantis ouvertes", "Statut de la livraison", "Mantis fermées", "Tri")
+
+    Set ws = ActiveSheet
+    Set colMap = CreateObject("Scripting.Dictionary")
+
+    ' Trouver les colonnes correspondant aux entêtes
+    For Each col In ws.Range("1:1")
+        For i = 0 To UBound(header)
+            If Trim(col.Value) = header(i) Then
+                colMap(header(i)) = col.Column
+            End If
+        Next i
+    Next col
+
+    ' Créer nouveau classeur pour l'export
+    Set exportBook = Workbooks.Add
+    Set exportWs = exportBook.Sheets(1)
+
+    ' Copier les entêtes
+    For i = 0 To UBound(header)
+        exportWs.Cells(1, i + 1).Value = header(i)
+    Next i
+
+    ' Dernière ligne à traiter
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    ' Copier les données
+    For i = 2 To lastRow
+        For destCol = 0 To UBound(header)
+            If colMap.exists(header(destCol)) Then
+                exportWs.Cells(i, destCol + 1).Value = ws.Cells(i, colMap(header(destCol))).Value
+            End If
+        Next destCol
+    Next i
+
+    ' Sauvegarder sous CSV
+    Dim chemin As String
+    chemin = Application.ThisWorkbook.Path & "\Export_Suivi_Versions.csv"
+    Application.DisplayAlerts = False
+    exportBook.SaveAs Filename:=chemin, FileFormat:=xlCSV, CreateBackup:=False
+    exportBook.Close SaveChanges:=False
+    Application.DisplayAlerts = True
+
+    MsgBox "Export terminé : " & chemin, vbInformation
+End Sub
+
+
+---
+
+▶️ Comment l’utiliser
+
+1. Va dans ton Excel ouvert.
+
+
+2. Ouvre l’éditeur avec ALT + F11.
+
+
+3. Colle le code dans un nouveau module.
+
+
+4. Ferme l’éditeur.
+
+
+5. Lance la macro avec ALT + F8, sélectionne ExportSuiviVersionsToCSV et clique sur Exécuter.
+
+
+
+
+---
+
+📁 Résultat :
+
+Un fichier Export_Suivi_Versions.csv sera créé dans le même dossier que ton fichier Excel.
+
+Souhaite-tu que je l’adapte pour filtrer certaines lignes ou transformer le contenu (ex. : supprimer les sauts de ligne dans les cellules) ?
+
