@@ -44,3 +44,39 @@
 	height: 100%;
 }
 </style>	
+
+from django.db.models import Prefetch, Q
+
+# On part d’un ticket
+ticket = SuiviTicket.objects.get(id=mon_id)
+
+# Préchargement optimisé
+lots = ticket.su_lot_set.prefetch_related(
+    Prefetch(
+        'su_lotversion_set',
+        queryset=SuLotVersion.objects.prefetch_related(
+            Prefetch(
+                'suivilotversion_opened_mantis_set',
+                queryset=SuiviLotVersionOpenedMantis.objects.select_related('suivimantismoe')
+            )
+        )
+    )
+)
+
+# Parcours des données
+for lot in lots:
+    print(f"Lot ID: {lot.id}")
+    
+    for version in lot.su_lotversion_set.all():
+        status = []
+        if version.is_installe:
+            status.append("Installé")
+        if version.is_refuse:
+            status.append("Refusé")
+        if version.is_echec:
+            status.append("Échec")
+        print("Statut :", ", ".join(status) or "Inconnu")
+
+        for link in version.suivilotversion_opened_mantis_set.all():
+            mantis = link.suivimantismoe
+            print(f"Mantis MOE Ouverte : ID={mantis.id}, nom={mantis.nom}")
