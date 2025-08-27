@@ -24,3 +24,24 @@ def get_stats_par_mois():
         for item in qs
     }
     return result
+
+
+from django.db.models import Count, Case, When, IntegerField, F
+
+stats = MaTable.objects.aggregate(
+    dans_delai=Count(
+        Case(
+            When(real_delivery_date__lte=F("su_delivery_date"), then=1),
+            output_field=IntegerField()
+        )
+    ),
+    hors_delai=Count(
+        Case(
+            When(real_delivery_date__gt=F("su_delivery_date"), then=1),
+            output_field=IntegerField()
+        )
+    )
+)
+
+print(stats)
+# {"dans_delai": 120, "hors_delai": 35}
