@@ -45,3 +45,34 @@ stats = MaTable.objects.aggregate(
 
 print(stats)
 # {"dans_delai": 120, "hors_delai": 35}
+
+
+from django.db.models import Count, Case, When, IntegerField, F
+from django.db.models.functions import TruncMonth
+from django.contrib.postgres.aggregates import ArrayAgg
+
+qs = (
+    MaTable.objects
+    .exclude(su_delivery_date__isnull=True, real_delivery_date__isnull=True)
+    .annotate(mois=TruncMonth("real_delivery_date"))
+    .values("mois")
+    .annotate(
+        dans_delai=Count(
+            Case(
+                When(real_delivery_date__lte=F("su_delivery_date"), then=1),
+                output_field=IntegerField()
+            )
+        ),
+        hors_delai=Count(
+            Case(
+                When(real_delivery_date__gt=F("su_delivery_date"), then=1),
+                output_field=IntegerField()
+            )
+        ),
+        tickets_hors_delai=ArrayAgg(
+            "ticket_number",
+            filter=When(real_delivery_date__gt=F("su_delivery_date"))
+        )
+    )
+    .order_by("mois")
+)
