@@ -57,3 +57,18 @@ qs = (
     )
     .order_by("mois")
 )
+
+// Dictionnaire de couleurs fixes par type
+const colorsByKey = {
+  "1": "#4e79a7",
+  "2": "#f28e2b",
+  "3": "#e15759",
+  "4": "#76b7b2",
+  "5": "#59a14f",
+  "6": "#edc949"
+};
+
+// Si jamais une clé n’existe pas, on met une couleur par défaut
+function getColorForKey(key) {
+  return colorsByKey[key] || "#999999";
+}
