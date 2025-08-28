@@ -72,3 +72,21 @@ const colorsByKey = {
 function getColorForKey(key) {
   return colorsByKey[key] || "#999999";
 }
+
+
+##########
+// Obtenir le mois courant en format "MM/YYYY"
+const now = new Date();
+const currentKey = String(now.getMonth() + 1).padStart(2, '0') + "/" + now.getFullYear();
+
+// Ne garder que les données du mois courant
+const labels = [currentKey];  // juste le mois courant
+const all_keys = Object.keys(json[currentKey]).filter(k => k.toLowerCase() !== "tickets");
+
+const datasets = all_keys.map(key => {
+  return {
+    label: key,
+    data: [json[currentKey][key]],  // valeurs du mois courant
+    backgroundColor: getColorForKey(key)
+  };
+});
