@@ -66,3 +66,59 @@ class DatabaseHelper():
             c.close()
         except Exception as e:
             print (e)
+
+
+
+let selectedLots = {}; 
+// ex: { "LIFA-BDD": { checked: true, version: "2.3.104.0" } }
+
+$(document).ready(function () {
+    let table = $('#modal_liste_lots').DataTable({
+        stateSave: true // garde recherche, pagination, tri
+    });
+
+    // Quand on coche/décoche un lot
+    $(document).on("change", ".lot_choice", function () {
+        const id = $(this).data("id");
+        if (!selectedLots[id]) selectedLots[id] = {};
+        selectedLots[id].checked = this.checked;
+    });
+
+    // Quand on change une version
+    $(document).on("change", ".add_selected_lot", function () {
+        const id = $(this).data("id");
+        if (!selectedLots[id]) selectedLots[id] = {};
+        selectedLots[id].version = $(this).val();
+    });
+
+    // À chaque redraw (après recherche/pagination) → réappliquer l’état
+    table.on("draw", function () {
+        $(".lot_choice").each(function () {
+            const id = $(this).data("id");
+            if (selectedLots[id] && selectedLots[id].checked) {
+                $(this).prop("checked", true);
+            }
+        });
+
+        $(".add_selected_lot").each(function () {
+            const id = $(this).data("id");
+            if (selectedLots[id] && selectedLots[id].version) {
+                $(this).val(selectedLots[id].version);
+            }
+        });
+    });
+
+    // Bouton confirmer → envoyer l’état global (même si certains lots ne sont pas visibles)
+    $("#confirmLots").on("click", function () {
+        console.log(selectedLots); // <-- ici tu peux l’envoyer en AJAX ou dans un <form hidden>
+        
+        // Exemple si tu veux soumettre avec un formulaire classique :
+        $("<input>").attr({
+            type: "hidden",
+            name: "lots_selection",
+            value: JSON.stringify(selectedLots)
+        }).appendTo("form");
+
+        $("form").submit();
+    });
+});
