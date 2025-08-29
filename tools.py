@@ -69,56 +69,41 @@ class DatabaseHelper():
 
 
 
-let selectedLots = {}; 
-// ex: { "LIFA-BDD": { checked: true, version: "2.3.104.0" } }
+let selectedLots = [];
 
-$(document).ready(function () {
-    let table = $('#modal_liste_lots').DataTable({
-        stateSave: true // garde recherche, pagination, tri
-    });
+$(document).on("change", ".lot_choice", function() {
+    let tr = $(this).closest("tr");
+    let versionId = tr.find(".add_selected_lot").val();
 
-    // Quand on coche/décoche un lot
-    $(document).on("change", ".lot_choice", function () {
-        const id = $(this).data("id");
-        if (!selectedLots[id]) selectedLots[id] = {};
-        selectedLots[id].checked = this.checked;
-    });
+    if (this.checked) {
+        if (!selectedLots.includes(versionId)) {
+            selectedLots.push(versionId);
+        }
+    } else {
+        selectedLots = selectedLots.filter(id => id !== versionId);
+    }
+});
 
-    // Quand on change une version
-    $(document).on("change", ".add_selected_lot", function () {
-        const id = $(this).data("id");
-        if (!selectedLots[id]) selectedLots[id] = {};
-        selectedLots[id].version = $(this).val();
-    });
+$(document).on("change", ".add_selected_lot", function() {
+    let tr = $(this).closest("tr");
+    let checkbox = tr.find(".lot_choice");
+    let versionId = $(this).val();
 
-    // À chaque redraw (après recherche/pagination) → réappliquer l’état
-    table.on("draw", function () {
-        $(".lot_choice").each(function () {
-            const id = $(this).data("id");
-            if (selectedLots[id] && selectedLots[id].checked) {
-                $(this).prop("checked", true);
-            }
-        });
+    if (checkbox.is(":checked")) {
+        // mettre à jour la version dans selectedLots
+        selectedLots = selectedLots.filter(id => id !== versionId);
+        selectedLots.push(versionId);
+    }
+});
 
-        $(".add_selected_lot").each(function () {
-            const id = $(this).data("id");
-            if (selectedLots[id] && selectedLots[id].version) {
-                $(this).val(selectedLots[id].version);
-            }
-        });
-    });
+// Au submit → selectedLots contient TOUS les choix, même si l’utilisateur a changé de page
+$("#confirmLots").on("click", function () {
+    console.log(selectedLots);
+    $("<input>").attr({
+        type: "hidden",
+        name: "lots_selection",
+        value: JSON.stringify(selectedLots)
+    }).appendTo("form");
 
-    // Bouton confirmer → envoyer l’état global (même si certains lots ne sont pas visibles)
-    $("#confirmLots").on("click", function () {
-        console.log(selectedLots); // <-- ici tu peux l’envoyer en AJAX ou dans un <form hidden>
-        
-        // Exemple si tu veux soumettre avec un formulaire classique :
-        $("<input>").attr({
-            type: "hidden",
-            name: "lots_selection",
-            value: JSON.stringify(selectedLots)
-        }).appendTo("form");
-
-        $("form").submit();
-    });
+    $("form").submit();
 });
