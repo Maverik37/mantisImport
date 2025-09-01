@@ -1,0 +1,49 @@
+from django.db.models import Case, When, Value, BooleanField
+from django.http import JsonResponse
+
+def suivi_lots(request, suivi_id):
+    suivi = SuiviInstall.objects.get(pk=suivi_id)
+
+    data = []
+    # On récupère tous les noms de lots distincts
+    lot_names = Lot.objects.values_list("l_name", flat=True).distinct()
+
+    for name in lot_names:
+        versions = (
+            Lot.objects.filter(l_name=name)
+            .annotate(
+                selected=Case(
+                    When(
+                        id__in=suivi.su_lots.values_list("id", flat=True),
+                        l_version=suivi.su_nb_new_version,
+                        then=Value(True),
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            )
+            .values("id", "l_version", "selected")
+        )
+
+        # Transformer en liste Select
+        select_list = [
+            {"id": v["id"], "version": v["l_version"], "selected": v["selected"]}
+            for v in versions
+        ]
+
+        # Checkbox = la version marquée comme selected
+        checkbox_item = next((s for s in select_list if s["selected"]), {
+            "id": None,
+            "version": None,
+            "checked": False,
+        })
+        if checkbox_item["id"]:
+            checkbox_item["checked"] = True
+
+        data.append({
+            "Name": name,
+            "Select": select_list,
+            "Checkbox": checkbox_item,
+        })
+
+    return JsonResponse(data, safe=False)
