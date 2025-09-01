@@ -1,60 +1,30 @@
-<div id="example-table"></div>
-
-<script>
-  // Ton JSON tel quel
-  const lotsData = {{ lots_json|safe }};
-
-  new Tabulator("#example-table", {
+new Tabulator("#modal_liste_lots", {
     data: lotsData,
     layout: "fitColumns",
     columns: [
-      { title: "Lot", field: "Name" },
+        { title: "Lot", field: "Name" },
+        { 
+            title: "Version", 
+            field: "Select", 
+            editor: "list",   
+            editorParams: function(cell){
+                const options = cell.getValue().map(opt => ({
+                    label: opt.version,  // affiché
+                    value: opt.id        // valeur réelle
+                }));
 
-      // ===== Version (select) =====
-      {
-        title: "Version",
-        field: "Select",               // on conserve le champ d'origine
-        // lit la valeur affichée depuis ton tableau "Select"
-        accessor: function (value, data) {
-          const sel = (value || []).find(o => o.selected);
-          return sel ? sel.version : null;
-        },
-        editor: "select",              // éditeur explicite
-        editorParams: function (cell) {
-          const opts = {};
-          (cell.getRow().getData().Select || []).forEach(o => {
-            opts[o.version] = o.version; // { "11.0.0": "11.0.0", ... }
-          });
-          return { values: opts, sortValuesList: "asc" };
-        },
-        // quand on change la sélection, on met à jour ton tableau "Select"
-        mutatorEdit: function (value, data) {
-          (data.Select || []).forEach(o => o.selected = (o.version === value));
-          return data.Select; // on réécrit le champ d'origine
-        },
-        // petit placeholder visuel si rien n'est sélectionné
-        formatter: function (cell) {
-          const v = cell.getValue();
-          return v ? v : "<span style='opacity:.6'>Sélection la version</span>";
+                // trouver la valeur sélectionnée
+                const preselected = cell.getValue().find(opt => opt.selected);
+                return {
+                    values: options,
+                    defaultValue: preselected ? preselected.id : null
+                };
+            },
+            formatter: function(cell){
+                const selectArr = cell.getValue();
+                const preselected = selectArr.find(opt => opt.selected);
+                return preselected ? preselected.version : "";
+            }
         }
-      },
-
-      // ===== À ajouter (checkbox) =====
-      {
-        title: "À ajouter (si nécessaire)",
-        field: "Checkbox",             // on conserve le champ d'origine
-        accessor: function (value) {   // convertit ton tableau -> booléen
-          return (value || []).some(o => o.checked);
-        },
-        formatter: "tickCross",        // formatter intégré (pas de fonction)
-        hozAlign: "center",
-        editor: "tickCross",           // éditeur explicite (évite l'auto-lookup)
-        // pousse le booléen édité dans ton tableau "Checkbox"
-        mutatorEdit: function (value, data) {
-          (data.Checkbox || []).forEach(o => o.checked = !!value);
-          return data.Checkbox;        // on réécrit le champ d'origine
-        }
-      }
     ]
-  });
-</script>
+});
