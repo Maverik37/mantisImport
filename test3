@@ -1,50 +1,60 @@
+<div id="example-table"></div>
+
 <script>
+  // Ton JSON tel quel
   const lotsData = {{ lots_json|safe }};
 
-  var table = new Tabulator("#example-table", {
-      data: lotsData,
-      columns: [
-          {title: "Lot", field: "Name"},
-          {
-              title: "Version",
-              field: "Select",
-              editor: "select",
-              editorParams: function(cell){
-                  // prend les valeurs de la clé "Select" dans ton JSON
-                  let rowData = cell.getRow().getData();
-                  let options = {};
-                  rowData.Select.forEach(opt => {
-                      options[opt.version] = opt.version;
-                  });
-                  return { values: options };
-              },
-              formatter: function(cell){
-                  let rowData = cell.getRow().getData();
-                  let selected = rowData.Select.find(opt => opt.selected);
-                  return selected ? selected.version : "Sélection la version";
-              },
-              mutatorEdit: function(value, data, type, params, component){
-                  // mets à jour le "selected"
-                  data.Select.forEach(opt => opt.selected = (opt.version === value));
-                  return data.Select;
-              }
-          },
-          {
-              title: "À ajouter (si nécessaire)",
-              field: "Checkbox",
-              formatter: function(cell){
-                  let rowData = cell.getRow().getData();
-                  let checked = rowData.Checkbox.some(opt => opt.checked);
-                  return checked ? "✔" : "";
-              },
-              editor: true,
-              cellEdited: function(cell){
-                  let rowData = cell.getRow().getData();
-                  let newVal = !rowData.Checkbox.some(opt => opt.checked);
-                  rowData.Checkbox.forEach(opt => opt.checked = newVal);
-                  cell.getTable().updateData([rowData]);
-              }
-          }
-      ]
+  new Tabulator("#example-table", {
+    data: lotsData,
+    layout: "fitColumns",
+    columns: [
+      { title: "Lot", field: "Name" },
+
+      // ===== Version (select) =====
+      {
+        title: "Version",
+        field: "Select",               // on conserve le champ d'origine
+        // lit la valeur affichée depuis ton tableau "Select"
+        accessor: function (value, data) {
+          const sel = (value || []).find(o => o.selected);
+          return sel ? sel.version : null;
+        },
+        editor: "select",              // éditeur explicite
+        editorParams: function (cell) {
+          const opts = {};
+          (cell.getRow().getData().Select || []).forEach(o => {
+            opts[o.version] = o.version; // { "11.0.0": "11.0.0", ... }
+          });
+          return { values: opts, sortValuesList: "asc" };
+        },
+        // quand on change la sélection, on met à jour ton tableau "Select"
+        mutatorEdit: function (value, data) {
+          (data.Select || []).forEach(o => o.selected = (o.version === value));
+          return data.Select; // on réécrit le champ d'origine
+        },
+        // petit placeholder visuel si rien n'est sélectionné
+        formatter: function (cell) {
+          const v = cell.getValue();
+          return v ? v : "<span style='opacity:.6'>Sélection la version</span>";
+        }
+      },
+
+      // ===== À ajouter (checkbox) =====
+      {
+        title: "À ajouter (si nécessaire)",
+        field: "Checkbox",             // on conserve le champ d'origine
+        accessor: function (value) {   // convertit ton tableau -> booléen
+          return (value || []).some(o => o.checked);
+        },
+        formatter: "tickCross",        // formatter intégré (pas de fonction)
+        hozAlign: "center",
+        editor: "tickCross",           // éditeur explicite (évite l'auto-lookup)
+        // pousse le booléen édité dans ton tableau "Checkbox"
+        mutatorEdit: function (value, data) {
+          (data.Checkbox || []).forEach(o => o.checked = !!value);
+          return data.Checkbox;        // on réécrit le champ d'origine
+        }
+      }
+    ]
   });
 </script>
