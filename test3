@@ -1,109 +1,50 @@
-from django.db.models import Case, When, Value, BooleanField
-from django.http import JsonResponse
-
-def suivi_lots(request, suivi_id):
-    suivi = SuiviInstall.objects.get(pk=suivi_id)
-
-    data = []
-    # On récupère tous les noms de lots distincts
-    lot_names = Lot.objects.values_list("l_name", flat=True).distinct()
-
-    for name in lot_names:
-        versions = (
-            Lot.objects.filter(l_name=name)
-            .annotate(
-                selected=Case(
-                    When(
-                        id__in=suivi.su_lots.values_list("id", flat=True),
-                        l_version=suivi.su_nb_new_version,
-                        then=Value(True),
-                    ),
-                    default=Value(False),
-                    output_field=BooleanField(),
-                )
-            )
-            .values("id", "l_version", "selected")
-        )
-
-        # Transformer en liste Select
-        select_list = [
-            {"id": v["id"], "version": v["l_version"], "selected": v["selected"]}
-            for v in versions
-        ]
-
-        # Checkbox = la version marquée comme selected
-        checkbox_item = next((s for s in select_list if s["selected"]), {
-            "id": None,
-            "version": None,
-            "checked": False,
-        })
-        if checkbox_item["id"]:
-            checkbox_item["checked"] = True
-
-        data.append({
-            "Name": name,
-            "Select": select_list,
-            "Checkbox": checkbox_item,
-        })
-
-    return JsonResponse(data, safe=False)
-№###€€€€€#######
-<div id="table"></div>
-<button id="save">Sauvegarder</button>
-
 <script>
-  // JSON injecté depuis Django
   const lotsData = {{ lots_json|safe }};
 
-  const table = new Tabulator("#table", {
-    data: lotsData,
-    layout: "fitColumns",
-    columns: [
-      {title: "Nom du lot", field: "Name"},
-
-      {
-        title: "Version",
-        field: "Select",
-        editor: "select",
-        formatter: function(cell){
-          // afficher la version actuellement sélectionnée
-          const selectList = cell.getValue();
-          const selected = selectList.find(v => v.selected);
-          return selected ? selected.version : "";
-        },
-        editorParams: function(cell){
-          // construire le menu déroulant
-          const selectList = cell.getValue();
-          let options = {};
-          selectList.forEach(v => { options[v.version] = v.version });
-          return { values: options };
-        },
-        mutatorEdit: function(value, data){
-          // remettre à jour les flags selected dans Select
-          data.Select.forEach(v => v.selected = (v.version === value));
-          return data.Select;
-        }
-      },
-
-      {
-        title: "Assigné",
-        field: "Checkbox.checked",
-        formatter: "tickCross",
-        editor: true
-      }
-    ]
-  });
-
-  // Récupérer les données modifiées
-  document.getElementById("save").addEventListener("click", function(){
-    const data = table.getData();
-    console.log("Données modifiées :", data);
-
-    fetch("/api/suivi/save/", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(data)
-    }).then(r => r.json())
-      .then(resp => console.log("Sauvegarde OK:", resp));
+  var table = new Tabulator("#example-table", {
+      data: lotsData,
+      columns: [
+          {title: "Lot", field: "Name"},
+          {
+              title: "Version",
+              field: "Select",
+              editor: "select",
+              editorParams: function(cell){
+                  // prend les valeurs de la clé "Select" dans ton JSON
+                  let rowData = cell.getRow().getData();
+                  let options = {};
+                  rowData.Select.forEach(opt => {
+                      options[opt.version] = opt.version;
+                  });
+                  return { values: options };
+              },
+              formatter: function(cell){
+                  let rowData = cell.getRow().getData();
+                  let selected = rowData.Select.find(opt => opt.selected);
+                  return selected ? selected.version : "Sélection la version";
+              },
+              mutatorEdit: function(value, data, type, params, component){
+                  // mets à jour le "selected"
+                  data.Select.forEach(opt => opt.selected = (opt.version === value));
+                  return data.Select;
+              }
+          },
+          {
+              title: "À ajouter (si nécessaire)",
+              field: "Checkbox",
+              formatter: function(cell){
+                  let rowData = cell.getRow().getData();
+                  let checked = rowData.Checkbox.some(opt => opt.checked);
+                  return checked ? "✔" : "";
+              },
+              editor: true,
+              cellEdited: function(cell){
+                  let rowData = cell.getRow().getData();
+                  let newVal = !rowData.Checkbox.some(opt => opt.checked);
+                  rowData.Checkbox.forEach(opt => opt.checked = newVal);
+                  cell.getTable().updateData([rowData]);
+              }
+          }
+      ]
   });
 </script>
