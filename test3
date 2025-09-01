@@ -11,7 +11,7 @@ const lotsData = [
       { id: 3245, version: "11.0.0", selected: false },
       { id: 7248, version: "12.0.0", selected: false },
       { id: 7249, version: "12.1.0", selected: false },
-      { id: 8346, version: "13.0.0", selected: true }
+      { id: 8346, version: "13.0.0", selected: true }  // <- doit être présélectionné
     ]
   },
   {
@@ -23,7 +23,7 @@ const lotsData = [
   }
 ];
 
-// On ajoute un champ `selectedId` pour gérer la valeur du select
+// 🟢 On ajoute une clé selectedId en fonction de Select[].selected
 const dataWithSelectedId = lotsData.map(r => ({
   ...r,
   selectedId: (r.Select.find(o => o.selected) || {}).id ?? null
@@ -37,20 +37,15 @@ new Tabulator("#modal_liste_lots", {
 
     {
       title: "Version",
-      field: "selectedId",
+      field: "selectedId",   // ⚡ ici Tabulator gère la valeur choisie
       editor: "list",
       editorParams: function(cell){
         const row = cell.getRow().getData();
-
-        // on prépare les options + un placeholder
-        const options = [
-          { label: "-- Choisir une version --", value: null },
-          ...row.Select.map(o => ({ label: o.version, value: o.id }))
-        ];
-
         return {
-          values: options,
-          defaultValue: cell.getValue() ?? null
+          values: [
+            { label: "-- Choisir une version --", value: null }, // placeholder
+            ...row.Select.map(o => ({ label: o.version, value: o.id }))
+          ]
         };
       },
       formatter: function(cell){
@@ -61,8 +56,7 @@ new Tabulator("#modal_liste_lots", {
       cellEdited: function(cell){
         const row = cell.getRow().getData();
         const chosenId = cell.getValue();
-
-        // synchroniser le tableau Select
+        // 🔄 on met à jour le tableau Select
         row.Select.forEach(o => (o.selected = (o.id === chosenId)));
       }
     }
