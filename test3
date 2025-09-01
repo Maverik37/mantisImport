@@ -47,3 +47,63 @@ def suivi_lots(request, suivi_id):
         })
 
     return JsonResponse(data, safe=False)
+№###€€€€€#######
+<div id="table"></div>
+<button id="save">Sauvegarder</button>
+
+<script>
+  // JSON injecté depuis Django
+  const lotsData = {{ lots_json|safe }};
+
+  const table = new Tabulator("#table", {
+    data: lotsData,
+    layout: "fitColumns",
+    columns: [
+      {title: "Nom du lot", field: "Name"},
+
+      {
+        title: "Version",
+        field: "Select",
+        editor: "select",
+        formatter: function(cell){
+          // afficher la version actuellement sélectionnée
+          const selectList = cell.getValue();
+          const selected = selectList.find(v => v.selected);
+          return selected ? selected.version : "";
+        },
+        editorParams: function(cell){
+          // construire le menu déroulant
+          const selectList = cell.getValue();
+          let options = {};
+          selectList.forEach(v => { options[v.version] = v.version });
+          return { values: options };
+        },
+        mutatorEdit: function(value, data){
+          // remettre à jour les flags selected dans Select
+          data.Select.forEach(v => v.selected = (v.version === value));
+          return data.Select;
+        }
+      },
+
+      {
+        title: "Assigné",
+        field: "Checkbox.checked",
+        formatter: "tickCross",
+        editor: true
+      }
+    ]
+  });
+
+  // Récupérer les données modifiées
+  document.getElementById("save").addEventListener("click", function(){
+    const data = table.getData();
+    console.log("Données modifiées :", data);
+
+    fetch("/api/suivi/save/", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    }).then(r => r.json())
+      .then(resp => console.log("Sauvegarde OK:", resp));
+  });
+</script>
