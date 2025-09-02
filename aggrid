@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Suivi des installations</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+  </head>
+  <body>
+    <h2>Suivi des installations</h2>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 500px;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <script>
+      const lotsData = [
+        {
+          name: "Abonnement Donnée SME",
+          select: [
+            { id: 3253, version: "11.0.0", selected: false },
+            { id: 7139, version: "12.0.0", selected: false },
+            { id: 7346, version: "12.1.0", selected: false },
+            { id: 8340, version: "13.0.0", selected: true },
+          ],
+          checkbox: [
+            { id: 3253, version: "11.0.0", checked: false },
+            { id: 7139, version: "12.0.0", checked: false },
+            { id: 7346, version: "12.1.0", checked: false },
+            { id: 8340, version: "13.0.0", checked: true },
+          ],
+        },
+        {
+          name: "Abonnement Unitaire",
+          select: [
+            { id: 3256, version: "1.0.0", selected: false },
+            { id: 3245, version: "1.0.1", selected: false },
+            { id: 3249, version: "1.0.2", selected: false },
+            { id: 3250, version: "1.0.3", selected: false },
+            { id: 3251, version: "1.0.4", selected: false },
+          ],
+          checkbox: [
+            { id: 3256, version: "1.0.0", checked: false },
+            { id: 3245, version: "1.0.1", checked: false },
+            { id: 3249, version: "1.0.2", checked: false },
+            { id: 3250, version: "1.0.3", checked: false },
+            { id: 3251, version: "1.0.4", checked: false },
+          ],
+        },
+      ];
+
+      // Transformer les données
+      const rowData = lotsData.flatMap((lot) =>
+        lot.select.map((item, idx) => ({
+          lot: lot.name,
+          version: item.version,
+          selected: item.selected,
+          checked: lot.checkbox[idx]?.checked ?? false,
+        }))
+      );
+
+      // Colonnes
+      const columnDefs = [
+        { headerName: "Lot", field: "lot", flex: 2 },
+        { headerName: "Version", field: "version", flex: 1 },
+        {
+          headerName: "Sélectionné",
+          field: "selected",
+          flex: 1,
+          cellRenderer: (params) => {
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = params.data.lot; // 1 seul radio par lot
+            input.checked = params.value;
+            input.addEventListener("change", () => {
+              gridOptions.api.forEachNode((node) => {
+                if (node.data.lot === params.data.lot) {
+                  node.setDataValue(
+                    "selected",
+                    node.data.version === params.data.version
+                  );
+                }
+              });
+            });
+            return input;
+          },
+        },
+        {
+          headerName: "À ajouter",
+          field: "checked",
+          flex: 1,
+          cellRenderer: (params) => {
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.checked = params.value;
+            input.addEventListener("change", (e) => {
+              params.node.setDataValue("checked", e.target.checked);
+            });
+            return input;
+          },
+        },
+      ];
+
+      // Options AG Grid
+      const gridOptions = {
+        columnDefs,
+        rowData,
+        animateRows: true,
+      };
+
+      // Initialisation
+      const eGridDiv = document.querySelector("#myGrid");
+      new agGrid.Grid(eGridDiv, gridOptions);
+    </script>
+  </body>
+</html>
