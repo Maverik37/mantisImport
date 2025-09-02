@@ -2,22 +2,21 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>AG Grid example</title>
+  <title>Suivi des installations</title>
   <link rel="stylesheet"
         href="https://unpkg.com/ag-grid-community/styles/ag-grid.css" />
   <link rel="stylesheet"
         href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css" />
 </head>
 <body>
+  <h2>Suivi des installations</h2>
   <div id="myGrid" class="ag-theme-alpine" style="height: 500px;"></div>
 
-  <!-- UMD build : crée window.agGrid -->
+  <!-- UMD build -->
   <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      console.log('window.agGrid =', !!window.agGrid); // doit afficher true
-
       const lotsData = [
         {
           name: "Abonnement Donnée SME",
@@ -25,7 +24,7 @@
             { id: 3253, version: "11.0.0", selected: false },
             { id: 7139, version: "12.0.0", selected: false },
             { id: 7346, version: "12.1.0", selected: false },
-            { id: 8340, version: "13.0.0", selected: true },
+            { id: 8340, version: "13.0.0", selected: true }, // <- version déjà sélectionnée
           ],
           checkbox: [
             { id: 3253, version: "11.0.0", checked: false },
@@ -41,48 +40,57 @@
             { id: 3245, version: "1.0.1", selected: false },
             { id: 3249, version: "1.0.2", selected: false },
             { id: 3250, version: "1.0.3", selected: false },
-            { id: 3251, version: "1.0.4", selected: false },
+            { id: 3251, version: "1.0.4", selected: true }, // <- version déjà sélectionnée
           ],
           checkbox: [
             { id: 3256, version: "1.0.0", checked: false },
             { id: 3245, version: "1.0.1", checked: false },
             { id: 3249, version: "1.0.2", checked: false },
             { id: 3250, version: "1.0.3", checked: false },
-            { id: 3251, version: "1.0.4", checked: false },
+            { id: 3251, version: "1.0.4", checked: true },
           ],
         },
       ];
 
-      const rowData = lotsData.flatMap(lot =>
-        lot.select.map((item, idx) => ({
+      // Transformer pour AG Grid (une ligne par "lot")
+      const rowData = lotsData.map(lot => {
+        // trouver la version présélectionnée
+        const selectedVersion = lot.select.find(v => v.selected) || lot.select[0];
+        return {
           lot: lot.name,
-          version: item.version,
-          selected: item.selected,
-          checked: lot.checkbox[idx]?.checked ?? false
-        }))
-      );
+          versions: lot.select.map(v => v.version),
+          version: selectedVersion.version,
+          checked: lot.checkbox.find(v => v.version === selectedVersion.version)?.checked ?? false
+        };
+      });
 
       const columnDefs = [
         { headerName: "Lot", field: "lot", flex: 2 },
-        { headerName: "Version", field: "version", flex: 1 },
         {
-          headerName: "Sélectionné",
-          field: "selected",
+          headerName: "Version",
+          field: "version",
           flex: 1,
           cellRenderer: params => {
-            const input = document.createElement('input');
-            input.type = 'radio';
-            input.name = params.data.lot; // radio group par lot
-            input.checked = !!params.value;
-            input.addEventListener('change', () => {
-              // On met à jour toutes les lignes du même lot pour que seule une version soit sélectionnée
-              gridOptions.api.forEachNode(node => {
-                if (node.data.lot === params.data.lot) {
-                  node.setDataValue('selected', node.data.version === params.data.version);
-                }
-              });
+            const select = document.createElement("select");
+
+            params.data.versions.forEach(ver => {
+              const option = document.createElement("option");
+              option.value = ver;
+              option.textContent = ver;
+              if (ver === params.value) option.selected = true;
+              select.appendChild(option);
             });
-            return input;
+
+            select.addEventListener("change", e => {
+              params.node.setDataValue("version", e.target.value);
+
+              // si on change de version, reset la checkbox en fonction des données
+              const lot = lotsData.find(l => l.name === params.data.lot);
+              const checkboxInfo = lot.checkbox.find(c => c.version === e.target.value);
+              params.node.setDataValue("checked", checkboxInfo?.checked ?? false);
+            });
+
+            return select;
           }
         },
         {
@@ -90,11 +98,11 @@
           field: "checked",
           flex: 1,
           cellRenderer: params => {
-            const input = document.createElement('input');
-            input.type = 'checkbox';
+            const input = document.createElement("input");
+            input.type = "checkbox";
             input.checked = !!params.value;
-            input.addEventListener('change', e => {
-              params.node.setDataValue('checked', e.target.checked);
+            input.addEventListener("change", e => {
+              params.node.setDataValue("checked", e.target.checked);
             });
             return input;
           }
@@ -107,9 +115,7 @@
         animateRows: true,
       };
 
-      const eGridDiv = document.querySelector('#myGrid');
-      // --- L'appel ci-dessous nécessite que la build UMD soit chargée (window.agGrid) ---
-      new agGrid.Grid(eGridDiv, gridOptions);
+      agGrid.createGrid(document.querySelector('#myGrid'), gridOptions);
     });
   </script>
 </body>
