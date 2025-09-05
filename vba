@@ -106,4 +106,8 @@ Function DictToJSON(d As Object, Optional indent As Integer = 0) As String
         End If
     Next
     
-    If Right(tmp, 1) = "," Then tmp = Left(tmp, Len
+    If Right(tmp, 1) = "," Then tmp = Left(tmp, Len(tmp) - 1)
+    tmp = tmp & vbCrLf & String((indent - 1) * 4, " ") & "}"
+    
+    DictToJSON = tmp
+End Function
