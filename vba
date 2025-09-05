@@ -7,17 +7,18 @@ Sub ExportExcelToJSON_Groupe()
     Dim json As String
     Dim dict As Object, lotDict As Object, verDict As Object
     
-    Set ws = ThisWorkbook.Sheets("EnCours") ' <-- adapte le nom si besoin
+    Dim analyseBrut As String, ancienneVer As String, analyseTexte As String
+    
+    Set ws = ThisWorkbook.Sheets("EnCours") ' <-- adapte le nom de l'onglet
     
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
     
     Set dict = CreateObject("Scripting.Dictionary")
     
-    For i = 2 To lastRow   ' en supposant que ligne 1 = en-têtes
-    
-        ' Lire valeur dans Colonne A (Nom du Lot)
+    For i = 2 To lastRow   ' ligne 1 = en-têtes
+        
+        ' --- Nom du Lot (colonne A) ---
         If Trim(ws.Cells(i, 1).Value) <> "" Then
-            ' c'est un "Lot principal"
             lot = Trim(ws.Cells(i, 1).Value)
             If Not dict.Exists(lot) Then
                 Set lotDict = CreateObject("Scripting.Dictionary")
@@ -27,13 +28,31 @@ Sub ExportExcelToJSON_Groupe()
             End If
         End If
         
-        ' Si une version est renseignée en Colonne B
+        ' --- Version (colonne B) ---
         version = Trim(ws.Cells(i, 2).Value)
         If version <> "" Then
             Set verDict = CreateObject("Scripting.Dictionary")
             
-            verDict.Add "Ancienne version", ws.Cells(i, 3).Value
-            verDict.Add "Analyse", ws.Cells(i, 4).Value
+            ' --- Découpage de la colonne Analyse (colonne D) ---
+            analyseBrut = CStr(ws.Cells(i, 4).Value)
+            If InStr(analyseBrut, "→") > 0 Then
+                ' Ancienne version = avant le "→"
+                ancienneVer = Trim(Split(analyseBrut, "→")(0))
+                
+                ' Analyse = texte entre parenthèses s'il y en a
+                If InStr(analyseBrut, "(") > 0 And InStr(analyseBrut, ")") > 0 Then
+                    analyseTexte = Mid(analyseBrut, InStr(analyseBrut, "(") + 1, InStr(analyseBrut, ")") - InStr(analyseBrut, "(") - 1)
+                Else
+                    analyseTexte = Trim(analyseBrut)
+                End If
+            Else
+                ancienneVer = ""
+                analyseTexte = analyseBrut
+            End If
+            
+            ' --- Remplir dictionnaire version ---
+            verDict.Add "Ancienne version", ancienneVer
+            verDict.Add "Analyse", analyseTexte
             verDict.Add "TicketInstallation", ws.Cells(i, 5).Value
             verDict.Add "Date d'analyse", ws.Cells(i, 6).Value
             verDict.Add "TicketOuvert", Split(CStr(ws.Cells(i, 7).Value), ",")
@@ -47,19 +66,28 @@ Sub ExportExcelToJSON_Groupe()
     
     json = DictToJSON(dict, 1)
     
-    ' Sauvegarde dans un fichier JSON
-    Dim fso As Object, ts As Object
-    Set fso = CreateObject("Scripting.FileSystemObject")
-    Set ts = fso.CreateTextFile(ThisWorkbook.Path & "\export.json", True, True)
-    ts.Write json
-    ts.Close
+    ' --- Boîte de dialogue pour enregistrer ---
+    Dim fName As Variant
+    fName = Application.GetSaveAsFilename( _
+                InitialFileName:="export.json", _
+                FileFilter:="Fichiers JSON (*.json), *.json", _
+                Title:="Enregistrer sous...")
     
-    MsgBox "Export terminé → " & ThisWorkbook.Path & "\export.json"
-
+    If fName <> False Then
+        Dim fso As Object, ts As Object
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        Set ts = fso.CreateTextFile(fName, True, True)
+        ts.Write json
+        ts.Close
+        MsgBox "Export terminé → " & fName
+    Else
+        MsgBox "Export annulé"
+    End If
+    
 End Sub
 
 
-' === Fonction récursive pour convertir dictionnaire en JSON ===
+' === Fonction récursive pour transformer dictionnaire en JSON ===
 Function DictToJSON(d As Object, Optional indent As Integer = 0) As String
     Dim k As Variant
     Dim tmp As String, sp As String
@@ -78,8 +106,4 @@ Function DictToJSON(d As Object, Optional indent As Integer = 0) As String
         End If
     Next
     
-    If Right(tmp, 1) = "," Then tmp = Left(tmp, Len(tmp) - 1)
-    tmp = tmp & vbCrLf & String((indent - 1) * 4, " ") & "}"
-    
-    DictToJSON = tmp
-End Function
+    If Right(tmp, 1) = "," Then tmp = Left(tmp, Len
